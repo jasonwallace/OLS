@@ -407,14 +407,18 @@ public class BatchNeo4JIndexer implements OntologyIndexer {
         for (IRI relation : relatedIndividuals.keySet()) {
             Map<String, Object> relatedProperties = new HashMap<>();
             relatedProperties.put("uri", relation.toString());
-            relatedProperties.put("label", loader.getTermLabels().get(relation));
+            String relationshipType = loader.getTermLabels().get(relation);
+            getLog().debug("Creating relationship of type " + relationshipType);
+            relatedProperties.put("label", relationshipType);
             relatedProperties.put("ontology_name", loader.getOntologyName());
             relatedProperties.put("__type__", "Related");
 
             for (IRI relatedTerm : relatedIndividuals.get(relation)) {
                 //TODO review right parameters
                 Long relatedNode =  getOrCreateNode(inserter, nodeMap,loader, relatedTerm, nodeLabels);
-                inserter.createRelationship( node, relatedNode, related, relatedProperties);
+//                inserter.createRelationship( node, relatedNode, related, relatedProperties);
+                RelationshipType relationship = DynamicRelationshipType.withName(relationshipType);
+                inserter.createRelationship(node, relatedNode, relationship, relatedProperties);
             }
 
         }
@@ -478,7 +482,9 @@ public class BatchNeo4JIndexer implements OntologyIndexer {
             for (IRI relation : relatedterms.keySet()) {
                 Map<String, Object> relatedProperties = new HashMap<>();
                 relatedProperties.put("uri", relation.toString());
-                relatedProperties.put("label", loader.getTermLabels().get(relation));
+                String relationshipType = loader.getTermLabels().get(relation);
+                getLog().debug("Creating relationship of type " + relationshipType);
+                relatedProperties.put("label", relationshipType);
                 relatedProperties.put("ontology_name", loader.getOntologyName());
                 relatedProperties.put("__type__", "Related");
 
@@ -491,7 +497,9 @@ public class BatchNeo4JIndexer implements OntologyIndexer {
                 for (IRI relatedTerm : relatedterms.get(relation)) {
                     Long relatedNode =  getOrCreateNode(inserter, nodeMap,loader, relatedTerm, nodeLabel,nodeOntologyLabel, _nodeLabel);
                     // create local relationship
-                    inserter.createRelationship( node, relatedNode, related, relatedProperties);
+//                    inserter.createRelationship( node, relatedNode, related, relatedProperties);
+                    RelationshipType relationship = DynamicRelationshipType.withName(relationshipType);
+                    inserter.createRelationship(node, relatedNode, relationship, relatedProperties);
                     // add a hierarchical relation if it is a related parent term
                     if (!loader.getRelatedParentTerms(classIri).isEmpty()) {
                         if (loader.getRelatedParentTerms(classIri).containsKey(relation)) {
